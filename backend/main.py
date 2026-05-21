@@ -15,7 +15,7 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000",
         "https://code-review-bot-navy.vercel.app/",
-    ],
+],
     allow_methods=["*"],
     allow_headers=["*"],
 )
