@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import ReactMarkdown from "react-markdown";
+import { UserButton } from "@clerk/nextjs";
 
 const LANGUAGES = [
   "python", "javascript", "typescript",
@@ -65,10 +66,7 @@ export default function Home() {
               Code Reviewer
             </p>
           </div>
-          <span className="text-xs bg-blue-900/60 text-blue-300
-                           px-3 py-1 rounded-full border border-blue-800">
-            Powered by Dheeraj's AI Lab
-          </span>
+          <UserButton />
         </div>
 
         {/* Main Grid */}
