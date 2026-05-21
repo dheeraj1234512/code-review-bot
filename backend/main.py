@@ -12,7 +12,10 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=[
+        "http://localhost:3000",
+        "https://code-review-bot-navy.vercel.app/",
+    ],
     allow_methods=["*"],
     allow_headers=["*"],
 )
