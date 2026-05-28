@@ -221,7 +221,7 @@ export default function Home() {
 
           <div className="flex flex-col gap-3">
             <label className="text-sm text-gray-400">AI Review</label>
-            <div className="h-[430px] overflow-y-auto bg-gray-900
+            <div className="h-107.5 overflow-y-auto bg-gray-900
                             border border-gray-700 rounded-xl p-5">
               {review ? (
                 <div className="prose prose-invert prose-sm max-w-none
