@@ -2,6 +2,7 @@
 import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { UserButton } from "@clerk/nextjs";
+import { supabase } from "@/lib/supabase";
 
 const LANGUAGES = [
   "python", "javascript", "typescript",
