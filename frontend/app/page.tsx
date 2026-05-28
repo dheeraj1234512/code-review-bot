@@ -1,12 +1,12 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
-import { UserButton } from "@clerk/nextjs";
+import { UserButton, useUser } from "@clerk/nextjs";
 import { supabase } from "@/lib/supabase";
 
 const LANGUAGES = [
-  "python", "javascript", "typescript",
-  "java", "go", "rust", "cpp", "sql", "php"
+  "python","javascript","typescript",
+  "java","go","rust","cpp","sql","php"
 ];
 
 const SAMPLE_CODE = `def get_user(id):
@@ -14,20 +14,57 @@ const SAMPLE_CODE = `def get_user(id):
     result = db.execute(query)
     return result`;
 
+type Review = {
+  id: string;
+  code: string;
+  language: string;
+  review: string;
+  created_at: string;
+};
+
 export default function Home() {
-  const [code, setCode]       = useState(SAMPLE_CODE);
-  const [lang, setLang]       = useState("python");
-  const [review, setReview]   = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError]     = useState("");
+  const { user } = useUser();
+  const [code, setCode]               = useState(SAMPLE_CODE);
+  const [lang, setLang]               = useState("python");
+  const [review, setReview]           = useState("");
+  const [loading, setLoading]         = useState(false);
+  const [error, setError]             = useState("");
+  const [history, setHistory]         = useState<Review[]>([]);
+  const [showHistory, setShowHistory] = useState(false);
 
   const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL;
+
+  useEffect(() => {
+    if (user) loadHistory();
+  }, [user]);
+
+  async function loadHistory() {
+    const { data } = await supabase
+      .from("reviews")
+      .select("*")
+      .eq("user_id", user!.id)
+      .order("created_at", { ascending: false })
+      .limit(10);
+    if (data) setHistory(data);
+  }
+
+  async function saveReview(reviewText: string) {
+    if (!user) return;
+    await supabase.from("reviews").insert({
+      user_id: user.id,
+      code,
+      language: lang,
+      review: reviewText,
+    });
+    loadHistory();
+  }
 
   async function handleReview() {
     if (!code.trim() || loading) return;
     setLoading(true);
     setReview("");
     setError("");
+    let fullReview = "";
 
     try {
       const res = await fetch(`${BACKEND}/review`, {
@@ -44,10 +81,15 @@ export default function Home() {
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-        setReview((prev) => prev + decoder.decode(value));
+        const chunk = decoder.decode(value);
+        fullReview += chunk;
+        setReview((prev) => prev + chunk);
       }
+
+      await saveReview(fullReview);
+
     } catch {
-      setError("❌ Error! Backend is not running? Check the terminal.");
+      setError("❌ Error! Backend chal raha hai?");
     } finally {
       setLoading(false);
     }
@@ -58,27 +100,78 @@ export default function Home() {
       <div className="max-w-6xl mx-auto">
 
         {/* Header */}
-        <div className="mb-8 flex items-center justify-between">
+        <div className="mb-6 flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-semibold text-white">
-              Power AI
+              AI Code Reviewer
             </h1>
             <p className="text-gray-400 text-sm mt-1">
-              Code Reviewer
+              Python FastAPI + React + Groq AI
             </p>
           </div>
-          <UserButton />
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowHistory(!showHistory)}
+              className="text-xs text-gray-400 hover:text-white
+                         border border-gray-700 px-3 py-1.5
+                         rounded-lg transition-colors"
+            >
+              {showHistory ? "Hide History" : "My History"}
+            </button>
+            <UserButton />
+          </div>
         </div>
+
+        {/* History Panel */}
+        {showHistory && (
+          <div className="mb-6 bg-gray-900 border border-gray-700
+                          rounded-xl p-4">
+            <h2 className="text-sm font-medium text-white mb-3">
+              Past Reviews
+            </h2>
+            {history.length === 0 ? (
+              <p className="text-gray-500 text-sm">
+                Koi review nahi abhi tak
+              </p>
+            ) : (
+              <div className="flex flex-col gap-2">
+                {history.map((h) => (
+                  <div
+                    key={h.id}
+                    onClick={() => {
+                      setCode(h.code);
+                      setLang(h.language);
+                      setReview(h.review);
+                      setShowHistory(false);
+                    }}
+                    className="flex items-center justify-between
+                               p-3 bg-gray-800 rounded-lg cursor-pointer
+                               hover:bg-gray-700 transition-colors"
+                  >
+                    <div>
+                      <span className="text-xs bg-blue-900 text-blue-300
+                                       px-2 py-0.5 rounded mr-2">
+                        {h.language}
+                      </span>
+                      <span className="text-sm text-gray-300">
+                        {h.code.slice(0, 40)}...
+                      </span>
+                    </div>
+                    <span className="text-xs text-gray-500">
+                      {new Date(h.created_at).toLocaleDateString("en-IN")}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Main Grid */}
         <div className="grid lg:grid-cols-2 gap-6">
-
-          {/* Left Panel — Code Input */}
           <div className="flex flex-col gap-3">
             <div className="flex items-center justify-between">
-              <label className="text-sm text-gray-400">
-                Your Code
-              </label>
+              <label className="text-sm text-gray-400">Your code</label>
               <select
                 value={lang}
                 onChange={(e) => setLang(e.target.value)}
@@ -91,7 +184,6 @@ export default function Home() {
                 ))}
               </select>
             </div>
-
             <textarea
               value={code}
               onChange={(e) => setCode(e.target.value)}
@@ -101,9 +193,8 @@ export default function Home() {
                          rounded-xl p-4 font-mono text-sm text-gray-100
                          resize-none outline-none focus:border-blue-500
                          leading-relaxed"
-              placeholder="Paste your code here..."
+              placeholder="Yahan apna code paste karo..."
             />
-
             <button
               onClick={handleReview}
               disabled={loading || !code.trim()}
@@ -115,15 +206,11 @@ export default function Home() {
               {loading ? (
                 <span className="flex items-center justify-center gap-2">
                   <span className="w-4 h-4 border-2 border-white/30
-                                   border-t-white rounded-full
-                                   animate-spin" />
-                  AI is reviewing...
+                                   border-t-white rounded-full animate-spin"/>
+                  AI review kar raha hai...
                 </span>
-              ) : (
-                "Review My Code →"
-              )}
+              ) : "Review my code →"}
             </button>
-
             {error && (
               <p className="text-red-400 text-sm bg-red-950/40
                             border border-red-900 rounded-lg p-3">
@@ -132,19 +219,16 @@ export default function Home() {
             )}
           </div>
 
-          {/* Right Panel — AI Review Output */}
           <div className="flex flex-col gap-3">
-            <label className="text-sm text-gray-400">
-              AI Review
-            </label>
-            <div className="h-107.5 overflow-y-auto bg-gray-900
+            <label className="text-sm text-gray-400">AI Review</label>
+            <div className="h-[430px] overflow-y-auto bg-gray-900
                             border border-gray-700 rounded-xl p-5">
               {review ? (
                 <div className="prose prose-invert prose-sm max-w-none
                                 prose-headings:text-blue-400
                                 prose-code:bg-gray-800
                                 prose-code:px-1.5 prose-code:py-0.5
-                                prose-code:rounded prose-code:text-xs">
+                                prose-code:rounded">
                   <ReactMarkdown>{review}</ReactMarkdown>
                 </div>
               ) : (
@@ -156,20 +240,18 @@ export default function Home() {
                     </div>
                     <p className="text-gray-500 text-sm">
                       {loading
-                        ? "AI is reviewing..."
-                        : "Paste your code and click 'Review My Code'"}
+                        ? "Review aa rahi hai..."
+                        : "Code paste karo aur button dabao"}
                     </p>
                   </div>
                 </div>
               )}
             </div>
-
             {review && (
               <button
                 onClick={() => setReview("")}
-                className="text-xs text-gray-600
-                           hover:text-gray-400 transition-colors
-                           w-full text-center"
+                className="text-xs text-gray-600 hover:text-gray-400
+                           w-full text-center transition-colors"
               >
                 Clear review
               </button>
