@@ -121,7 +121,7 @@ export default function Home() {
             Recent Reviews
           </p>
           {history.length === 0 ? (
-            <p className="text-xs text-gray-600">Koi review nahi abhi tak</p>
+            <p className="text-xs text-gray-600">No reviews available</p>
           ) : (
             <div className="flex flex-col gap-1.5">
               {history.map(h => (
@@ -204,7 +204,7 @@ export default function Home() {
             className="flex-1 bg-gray-950 text-gray-100 font-mono text-sm
                        p-4 resize-none outline-none leading-relaxed
                        placeholder-gray-700 min-h-64"
-            placeholder="Yahan apna code paste karo..."
+            placeholder="Paste your code here..."
           />
 
           {/* Review Button */}
