@@ -86,7 +86,7 @@ export default function Home() {
 
       {/* Navbar */}
       <nav className="border-b border-gray-800 px-4 py-3 flex
-                      items-center justify-between flex-shrink-0">
+                      items-center justify-between shrink-0">
         <div className="flex items-center gap-2">
           <div className="w-7 h-7 rounded-lg bg-blue-600 flex
                           items-center justify-center text-white text-xs
@@ -137,14 +137,14 @@ export default function Home() {
                 >
                   <div className="flex items-center gap-2 min-w-0">
                     <span className="text-xs bg-blue-900/60 text-blue-300
-                                     px-2 py-0.5 rounded flex-shrink-0">
+                                     px-2 py-0.5 rounded shrink-0">
                       {h.language}
                     </span>
                     <span className="text-xs text-gray-300 truncate">
                       {h.code.slice(0, 50)}...
                     </span>
                   </div>
-                  <span className="text-xs text-gray-600 flex-shrink-0 ml-2">
+                  <span className="text-xs text-gray-600 shrink-0 ml-2">
                     {new Date(h.created_at).toLocaleDateString("en-IN")}
                   </span>
                 </button>
@@ -155,7 +155,7 @@ export default function Home() {
       )}
 
       {/* Mobile Tab Bar */}
-      <div className="flex lg:hidden border-b border-gray-800 flex-shrink-0">
+      <div className="flex lg:hidden border-b border-gray-800 shrink-0">
         <button
           onClick={() => setTab("editor")}
           className={`flex-1 py-2.5 text-xs font-medium transition-colors
@@ -177,12 +177,12 @@ export default function Home() {
 
         {/* Left — Code Editor */}
         <div className={`flex flex-col w-full lg:w-1/2 lg:border-r
-                         border-gray-800 flex-shrink-0
+                         border-gray-800 shrink-0
                          ${tab === "review" ? "hidden lg:flex" : "flex"}`}>
 
           {/* Editor Header */}
           <div className="flex items-center justify-between px-4 py-2.5
-                          border-b border-gray-800 flex-shrink-0">
+                          border-b border-gray-800 shrink-0">
             <select value={lang} onChange={e => setLang(e.target.value)}
               className="bg-gray-800 text-white text-xs border border-gray-700
                          rounded-md px-2 py-1 outline-none
@@ -208,7 +208,7 @@ export default function Home() {
           />
 
           {/* Review Button */}
-          <div className="p-3 border-t border-gray-800 flex-shrink-0">
+          <div className="p-3 border-t border-gray-800 shrink-0">
             {error && (
               <p className="text-xs text-red-400 bg-red-950/30
                             border border-red-900/50 rounded-lg px-3
@@ -248,7 +248,7 @@ export default function Home() {
         <div className={`flex flex-col w-full lg:w-1/2
                          ${tab === "editor" ? "hidden lg:flex" : "flex"}`}>
           <div className="flex items-center justify-between px-4 py-2.5
-                          border-b border-gray-800 flex-shrink-0">
+                          border-b border-gray-800 shrink-0">
             <span className="text-xs text-gray-400 font-medium">
               AI Review
             </span>
