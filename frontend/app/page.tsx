@@ -31,234 +31,272 @@ export default function Home() {
   const [error, setError]             = useState("");
   const [history, setHistory]         = useState<Review[]>([]);
   const [showHistory, setShowHistory] = useState(false);
+  const [tab, setTab]                 = useState<"editor" | "review">("editor");
 
   const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL;
 
-  useEffect(() => {
-    if (user) loadHistory();
-  }, [user]);
+  useEffect(() => { if (user) loadHistory(); }, [user]);
 
   async function loadHistory() {
     const { data } = await supabase
-      .from("reviews")
-      .select("*")
+      .from("reviews").select("*")
       .eq("user_id", user!.id)
-      .order("created_at", { ascending: false })
-      .limit(10);
+      .order("created_at", { ascending: false }).limit(10);
     if (data) setHistory(data);
   }
 
   async function saveReview(reviewText: string) {
     if (!user) return;
     await supabase.from("reviews").insert({
-      user_id: user.id,
-      code,
-      language: lang,
-      review: reviewText,
+      user_id: user.id, code, language: lang, review: reviewText,
     });
     loadHistory();
   }
 
   async function handleReview() {
     if (!code.trim() || loading) return;
-    setLoading(true);
-    setReview("");
-    setError("");
-    let fullReview = "";
-
+    setLoading(true); setReview(""); setError("");
+    setTab("review");
+    let full = "";
     try {
       const res = await fetch(`${BACKEND}/review`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ code, language: lang }),
       });
-
-      if (!res.ok) throw new Error("Backend error");
-
+      if (!res.ok) throw new Error();
       const reader = res.body!.getReader();
       const decoder = new TextDecoder();
-
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
         const chunk = decoder.decode(value);
-        fullReview += chunk;
-        setReview((prev) => prev + chunk);
+        full += chunk;
+        setReview(prev => prev + chunk);
       }
-
-      await saveReview(fullReview);
-
+      await saveReview(full);
     } catch {
-      setError("❌ Error! Backend chal raha hai?");
-    } finally {
-      setLoading(false);
-    }
+      setError("Backend se connect nahi ho pa raha. Dobara try karo.");
+      setTab("editor");
+    } finally { setLoading(false); }
   }
 
   return (
-    <main className="min-h-screen bg-gray-950 p-6">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen bg-gray-950 flex flex-col">
 
-        {/* Header */}
-        <div className="mb-6 flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold text-white">
-              AI Code Reviewer
-            </h1>
-            <p className="text-gray-400 text-sm mt-1">
-              Python FastAPI + React + Groq AI
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setShowHistory(!showHistory)}
-              className="text-xs text-gray-400 hover:text-white
-                         border border-gray-700 px-3 py-1.5
-                         rounded-lg transition-colors"
-            >
-              {showHistory ? "Hide History" : "My History"}
+      {/* Navbar */}
+      <nav className="border-b border-gray-800 px-4 py-3 flex
+                      items-center justify-between flex-shrink-0">
+        <div className="flex items-center gap-2">
+          <div className="w-7 h-7 rounded-lg bg-blue-600 flex
+                          items-center justify-center text-white text-xs
+                          font-medium">AI</div>
+          <span className="text-white font-medium text-sm">
+            CodeReviewer
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowHistory(!showHistory)}
+            className="flex items-center gap-1.5 text-xs text-gray-400
+                       hover:text-white border border-gray-700
+                       hover:border-gray-500 px-3 py-1.5 rounded-lg
+                       transition-all"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor"
+                 viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round"
+                    strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            History
+          </button>
+          <UserButton />
+        </div>
+      </nav>
+
+      {/* History Drawer */}
+      {showHistory && (
+        <div className="border-b border-gray-800 bg-gray-900 px-4 py-3">
+          <p className="text-xs font-medium text-gray-400 mb-2">
+            Recent Reviews
+          </p>
+          {history.length === 0 ? (
+            <p className="text-xs text-gray-600">Koi review nahi abhi tak</p>
+          ) : (
+            <div className="flex flex-col gap-1.5">
+              {history.map(h => (
+                <button key={h.id}
+                  onClick={() => {
+                    setCode(h.code); setLang(h.language);
+                    setReview(h.review); setShowHistory(false);
+                    setTab("review");
+                  }}
+                  className="flex items-center justify-between w-full
+                             text-left px-3 py-2 rounded-lg bg-gray-800
+                             hover:bg-gray-700 transition-colors"
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="text-xs bg-blue-900/60 text-blue-300
+                                     px-2 py-0.5 rounded flex-shrink-0">
+                      {h.language}
+                    </span>
+                    <span className="text-xs text-gray-300 truncate">
+                      {h.code.slice(0, 50)}...
+                    </span>
+                  </div>
+                  <span className="text-xs text-gray-600 flex-shrink-0 ml-2">
+                    {new Date(h.created_at).toLocaleDateString("en-IN")}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Mobile Tab Bar */}
+      <div className="flex lg:hidden border-b border-gray-800 flex-shrink-0">
+        <button
+          onClick={() => setTab("editor")}
+          className={`flex-1 py-2.5 text-xs font-medium transition-colors
+            ${tab === "editor"
+              ? "text-white border-b-2 border-blue-500"
+              : "text-gray-500"}`}
+        >Code Editor</button>
+        <button
+          onClick={() => setTab("review")}
+          className={`flex-1 py-2.5 text-xs font-medium transition-colors
+            ${tab === "review"
+              ? "text-white border-b-2 border-blue-500"
+              : "text-gray-500"}`}
+        >AI Review {review && "✓"}</button>
+      </div>
+
+      {/* Main Content */}
+      <div className="flex flex-1 overflow-hidden">
+
+        {/* Left — Code Editor */}
+        <div className={`flex flex-col w-full lg:w-1/2 lg:border-r
+                         border-gray-800 flex-shrink-0
+                         ${tab === "review" ? "hidden lg:flex" : "flex"}`}>
+
+          {/* Editor Header */}
+          <div className="flex items-center justify-between px-4 py-2.5
+                          border-b border-gray-800 flex-shrink-0">
+            <select value={lang} onChange={e => setLang(e.target.value)}
+              className="bg-gray-800 text-white text-xs border border-gray-700
+                         rounded-md px-2 py-1 outline-none
+                         focus:border-blue-500">
+              {LANGUAGES.map(l => (
+                <option key={l} value={l}>{l}</option>
+              ))}
+            </select>
+            <button onClick={() => setCode("")}
+              className="text-xs text-gray-500 hover:text-gray-300
+                         transition-colors">
+              Clear
             </button>
-            <UserButton />
+          </div>
+
+          {/* Textarea */}
+          <textarea value={code} onChange={e => setCode(e.target.value)}
+            spellCheck={false}
+            className="flex-1 bg-gray-950 text-gray-100 font-mono text-sm
+                       p-4 resize-none outline-none leading-relaxed
+                       placeholder-gray-700 min-h-64"
+            placeholder="Yahan apna code paste karo..."
+          />
+
+          {/* Review Button */}
+          <div className="p-3 border-t border-gray-800 flex-shrink-0">
+            {error && (
+              <p className="text-xs text-red-400 bg-red-950/30
+                            border border-red-900/50 rounded-lg px-3
+                            py-2 mb-2">{error}</p>
+            )}
+            <button onClick={handleReview}
+              disabled={loading || !code.trim()}
+              className="w-full py-2.5 bg-blue-600 hover:bg-blue-500
+                         disabled:opacity-40 disabled:cursor-not-allowed
+                         text-white rounded-lg text-sm font-medium
+                         transition-colors flex items-center
+                         justify-center gap-2"
+            >
+              {loading ? (
+                <>
+                  <span className="w-4 h-4 border-2 border-white/30
+                                   border-t-white rounded-full
+                                   animate-spin"/>
+                  Reviewing...
+                </>
+              ) : (
+                <>
+                  <svg className="w-4 h-4" fill="none"
+                       stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  </svg>
+                  Review my code
+                </>
+              )}
+            </button>
           </div>
         </div>
 
-        {/* History Panel */}
-        {showHistory && (
-          <div className="mb-6 bg-gray-900 border border-gray-700
-                          rounded-xl p-4">
-            <h2 className="text-sm font-medium text-white mb-3">
-              Past Reviews
-            </h2>
-            {history.length === 0 ? (
-              <p className="text-gray-500 text-sm">
-                Koi review nahi abhi tak
-              </p>
-            ) : (
-              <div className="flex flex-col gap-2">
-                {history.map((h) => (
-                  <div
-                    key={h.id}
-                    onClick={() => {
-                      setCode(h.code);
-                      setLang(h.language);
-                      setReview(h.review);
-                      setShowHistory(false);
-                    }}
-                    className="flex items-center justify-between
-                               p-3 bg-gray-800 rounded-lg cursor-pointer
-                               hover:bg-gray-700 transition-colors"
-                  >
-                    <div>
-                      <span className="text-xs bg-blue-900 text-blue-300
-                                       px-2 py-0.5 rounded mr-2">
-                        {h.language}
-                      </span>
-                      <span className="text-sm text-gray-300">
-                        {h.code.slice(0, 40)}...
-                      </span>
-                    </div>
-                    <span className="text-xs text-gray-500">
-                      {new Date(h.created_at).toLocaleDateString("en-IN")}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Main Grid */}
-        <div className="grid lg:grid-cols-2 gap-6">
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center justify-between">
-              <label className="text-sm text-gray-400">Your code</label>
-              <select
-                value={lang}
-                onChange={(e) => setLang(e.target.value)}
-                className="bg-gray-800 text-white text-sm border
-                           border-gray-700 rounded-lg px-3 py-1.5
-                           outline-none focus:border-blue-500"
-              >
-                {LANGUAGES.map((l) => (
-                  <option key={l} value={l}>{l}</option>
-                ))}
-              </select>
-            </div>
-            <textarea
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              spellCheck={false}
-              rows={16}
-              className="w-full bg-gray-900 border border-gray-700
-                         rounded-xl p-4 font-mono text-sm text-gray-100
-                         resize-none outline-none focus:border-blue-500
-                         leading-relaxed"
-              placeholder="Yahan apna code paste karo..."
-            />
-            <button
-              onClick={handleReview}
-              disabled={loading || !code.trim()}
-              className="w-full py-3 bg-blue-600 hover:bg-blue-500
-                         disabled:opacity-40 disabled:cursor-not-allowed
-                         text-white rounded-xl text-sm font-medium
-                         transition-colors"
-            >
-              {loading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <span className="w-4 h-4 border-2 border-white/30
-                                   border-t-white rounded-full animate-spin"/>
-                  AI review kar raha hai...
-                </span>
-              ) : "Review my code →"}
-            </button>
-            {error && (
-              <p className="text-red-400 text-sm bg-red-950/40
-                            border border-red-900 rounded-lg p-3">
-                {error}
-              </p>
-            )}
-          </div>
-
-          <div className="flex flex-col gap-3">
-            <label className="text-sm text-gray-400">AI Review</label>
-            <div className="h-107.5 overflow-y-auto bg-gray-900
-                            border border-gray-700 rounded-xl p-5">
-              {review ? (
-                <div className="prose prose-invert prose-sm max-w-none
-                                prose-headings:text-blue-400
-                                prose-code:bg-gray-800
-                                prose-code:px-1.5 prose-code:py-0.5
-                                prose-code:rounded">
-                  <ReactMarkdown>{review}</ReactMarkdown>
-                </div>
-              ) : (
-                <div className="h-full flex items-center
-                                justify-center text-center">
-                  <div>
-                    <div className="text-4xl mb-3">
-                      {loading ? "⏳" : "✨"}
-                    </div>
-                    <p className="text-gray-500 text-sm">
-                      {loading
-                        ? "Review aa rahi hai..."
-                        : "Code paste karo aur button dabao"}
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
+        {/* Right — Review Output */}
+        <div className={`flex flex-col w-full lg:w-1/2
+                         ${tab === "editor" ? "hidden lg:flex" : "flex"}`}>
+          <div className="flex items-center justify-between px-4 py-2.5
+                          border-b border-gray-800 flex-shrink-0">
+            <span className="text-xs text-gray-400 font-medium">
+              AI Review
+            </span>
             {review && (
-              <button
-                onClick={() => setReview("")}
-                className="text-xs text-gray-600 hover:text-gray-400
-                           w-full text-center transition-colors"
-              >
-                Clear review
+              <button onClick={() => { setReview(""); setTab("editor"); }}
+                className="text-xs text-gray-500 hover:text-gray-300
+                           transition-colors">
+                Clear
               </button>
+            )}
+          </div>
+
+          <div className="flex-1 overflow-y-auto p-4">
+            {review ? (
+              <div className="prose prose-invert prose-sm max-w-none
+                              prose-headings:text-blue-400
+                              prose-headings:font-medium
+                              prose-code:bg-gray-800 prose-code:px-1.5
+                              prose-code:py-0.5 prose-code:rounded
+                              prose-code:text-xs prose-pre:bg-gray-800
+                              prose-pre:border prose-pre:border-gray-700">
+                <ReactMarkdown>{review}</ReactMarkdown>
+              </div>
+            ) : (
+              <div className="h-full flex items-center justify-center
+                              text-center p-8">
+                <div>
+                  <div className="w-12 h-12 rounded-xl bg-gray-800
+                                  flex items-center justify-center
+                                  mx-auto mb-3">
+                    <svg className="w-6 h-6 text-gray-600" fill="none"
+                         stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round"
+                            strokeWidth={1.5}
+                            d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+                    </svg>
+                  </div>
+                  <p className="text-sm text-gray-500">
+                    {loading
+                      ? "Review aa rahi hai..."
+                      : "Code paste karo aur Review dabao"}
+                  </p>
+                </div>
+              </div>
             )}
           </div>
         </div>
       </div>
-    </main>
+    </div>
   );
 }
