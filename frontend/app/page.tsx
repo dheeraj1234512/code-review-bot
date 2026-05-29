@@ -9,10 +9,17 @@ const LANGUAGES = [
   "java","go","rust","cpp","sql","php"
 ];
 
-const SAMPLE_CODE = `def get_user(id):
-    query = "SELECT * FROM users WHERE id=" + str(id)
-    result = db.execute(query)
-    return result`;
+const SAMPLE_CODE = `function generateFibonacci(terms) {
+    let series = [0, 1];
+    if (terms <= 1) return series.slice(0, terms);
+    
+    for (let i = 2; i < terms; i++) {
+        series.push(series[i - 1] + series[i - 2]);
+    }
+    return series;
+}
+
+console.log(generateFibonacci(8));`;
 
 type Review = {
   id: string;
