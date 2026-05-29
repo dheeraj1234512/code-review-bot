@@ -4,6 +4,38 @@ import ReactMarkdown from "react-markdown";
 import { UserButton, useUser } from "@clerk/nextjs";
 import { supabase } from "@/lib/supabase";
 
+
+function CodeBlock({ children, className }: {
+  children?: React.ReactNode;
+  className?: string;
+}) {
+  const [copied, setCopied] = useState(false);
+  const code = String(children).replace(/\n$/, "");
+
+  function copyCode() {
+    navigator.clipboard.writeText(code);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  return (
+    <div className="relative group my-3">
+      <button
+        onClick={copyCode}
+        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100
+                   transition-opacity px-2 py-1 text-xs rounded
+                   bg-gray-700 hover:bg-gray-600 text-gray-300
+                   border border-gray-600 z-10"
+      >
+        {copied ? "Copied!" : "Copy"}
+      </button>
+      <pre className="bg-gray-800 border border-gray-700 rounded-lg
+                      p-4 overflow-x-auto text-sm leading-relaxed">
+        <code className={className}>{code}</code>
+      </pre>
+    </div>
+  );
+}
 const LANGUAGES = [
   "python","javascript","typescript",
   "java","go","rust","cpp","sql","php"
@@ -277,7 +309,28 @@ export default function Home() {
                               prose-code:py-0.5 prose-code:rounded
                               prose-code:text-xs prose-pre:bg-gray-800
                               prose-pre:border prose-pre:border-gray-700">
-                <ReactMarkdown>{review}</ReactMarkdown>
+                <ReactMarkdown
+  components={{
+    code({ className, children }) {
+      const isBlock = className?.includes("language-");
+      if (isBlock) {
+        return (
+          <CodeBlock className={className}>
+            {children}
+          </CodeBlock>
+        );
+      }
+      return (
+        <code className="bg-gray-800 px-1.5 py-0.5 rounded
+                          text-xs font-mono">
+          {children}
+        </code>
+      );
+    },
+  }}
+>
+  {review}
+</ReactMarkdown>
               </div>
             ) : (
               <div className="h-full flex items-center justify-center
