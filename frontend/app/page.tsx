@@ -92,7 +92,7 @@ export default function Home() {
                           items-center justify-center text-white text-xs
                           font-medium">AI</div>
           <span className="text-white font-medium text-sm">
-            CodeReviewer
+            Power Ai Code Reviewer
           </span>
         </div>
         <div className="flex items-center gap-2">
@@ -237,7 +237,7 @@ export default function Home() {
                           strokeWidth={2}
                           d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                   </svg>
-                  Review my code
+                  Review My Code
                 </>
               )}
             </button>
@@ -288,8 +288,8 @@ export default function Home() {
                   </div>
                   <p className="text-sm text-gray-500">
                     {loading
-                      ? "Review aa rahi hai..."
-                      : "Code paste karo aur Review dabao"}
+                      ? "Review in progress..."
+                      : "Paste Your Code and Click the Review Button."}
                   </p>
                 </div>
               </div>
