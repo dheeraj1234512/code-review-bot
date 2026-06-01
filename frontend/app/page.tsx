@@ -46,7 +46,7 @@ export default async function LandingPage() {
             className="text-sm bg-blue-600 hover:bg-blue-500
                        text-white px-4 py-2 rounded-lg
                        transition-colors font-medium">
-            Free mein shuru karo
+            Start Free
           </Link>
         </div>
       </nav>
@@ -64,14 +64,14 @@ export default async function LandingPage() {
 
         <h1 className="text-4xl sm:text-6xl font-bold mb-6
                        leading-tight tracking-tight">
-          Apna code review karo{" "}
-          <span className="text-blue-400">seconds mein</span>
+          Review Your Code in {" "}
+          <span className="text-blue-400">Seconds</span>
         </h1>
 
         <p className="text-lg sm:text-xl text-gray-400 mb-10
                       max-w-2xl mx-auto leading-relaxed">
-          AI se instant code review lo — bugs pakdo, security issues dhundho,
-          aur better code likho. Bilkul free mein shuru karo।
+          Take Instant Review From AI — Catch bugs, Find Security Issues, And Get Suggestions In Seconds. Professional Code Review Tool For Developers.
+
         </p>
 
         <div className="flex flex-col sm:flex-row gap-3
@@ -80,7 +80,7 @@ export default async function LandingPage() {
             className="w-full sm:w-auto px-8 py-3.5 bg-blue-600
                        hover:bg-blue-500 text-white rounded-xl
                        font-medium transition-colors text-sm">
-            Free mein shuru karo →
+            Start Free →
           </Link>
           <Link href="/sign-in"
             className="w-full sm:w-auto px-8 py-3.5 border
