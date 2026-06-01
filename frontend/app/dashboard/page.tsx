@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import { UserButton, useUser } from "@clerk/nextjs";
 import { supabase } from "@/lib/supabase";
+import ThemeToggle from "@/components/ThemeToggle";
 
 
 function CodeBlock({ children, className }: {
@@ -149,6 +150,7 @@ export default function Home() {
             </svg>
             History
           </button>
+          <ThemeToggle />
           <UserButton />
         </div>
       </nav>

@@ -25,3 +25,30 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+/* Light mode overrides */
+.light body {
+  background-color: #f8fafc;
+  color: #0f172a;
+}
+
+.light nav {
+  background-color: #ffffff;
+  border-color: #e2e8f0;
+}
+
+.light textarea {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+.light .bg-gray-950 { background-color: #f8fafc !important; }
+.light .bg-gray-900 { background-color: #f1f5f9 !important; }
+.light .bg-gray-800 { background-color: #e2e8f0 !important; }
+.light .border-gray-800 { border-color: #e2e8f0 !important; }
+.light .border-gray-700 { border-color: #cbd5e1 !important; }
+.light .text-white { color: #0f172a !important; }
+.light .text-gray-100 { color: #1e293b !important; }
+.light .text-gray-300 { color: #334155 !important; }
+.light .text-gray-400 { color: #475569 !important; }
+.light .text-gray-500 { color: #64748b !important; }
