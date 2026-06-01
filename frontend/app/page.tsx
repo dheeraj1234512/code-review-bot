@@ -1,39 +1,29 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { auth } from "@clerk/nextjs/server";
 
 const features = [
   {
+    title: "Instant code review",
+    desc: "Fast AI feedback on your code with suggestions and bug detection.",
     icon: "⚡",
-    title: "Instant AI Review",
-    desc: "Claude AI se seconds mein code review — bugs, security issues, improvements sab ek jagah.",
   },
   {
+    title: "Security checks",
+    desc: "Find vulnerabilities and secure best practices in your code.",
     icon: "🔒",
-    title: "Security Audit",
-    desc: "SQL injection, XSS, aur common vulnerabilities automatically detect karo.",
   },
   {
-    icon: "📝",
-    title: "Review History",
-    desc: "Har review save hoti hai — kabhi bhi wapas dekho aur compare karo.",
-  },
-  {
+    title: "Multi-language support",
+    desc: "Review code in all major programming languages with ease.",
     icon: "🌐",
-    title: "10+ Languages",
-    desc: "Python, JavaScript, TypeScript, Java, Go, Rust aur bahut kuch.",
-  },
-  {
-    icon: "📋",
-    title: "Copy Code",
-    desc: "Fixed code ek click mein copy karo — seedha apne project mein paste karo.",
-  },
-  {
-    icon: "📱",
-    title: "Mobile Ready",
-    desc: "Phone pe bhi perfectly kaam karta hai — review karo kahaan se bhi.",
   },
 ];
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  const { userId } = await auth();
+  if (userId) redirect("/dashboard"); // Already logged in → dashboard
+
   return (
     <div className="min-h-screen bg-gray-950 text-white">
 
