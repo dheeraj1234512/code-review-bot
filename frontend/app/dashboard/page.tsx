@@ -72,8 +72,58 @@ export default function Home() {
   const [history, setHistory]         = useState<Review[]>([]);
   const [showHistory, setShowHistory] = useState(false);
   const [tab, setTab]                 = useState<"editor" | "review">("editor");
+  const [fileName, setFileName] = useState<string | null>(null);
 
   const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL;
+  // File extension se language detect karo
+function detectLanguage(filename: string): string {
+  const ext = filename.split(".").pop()?.toLowerCase();
+  const map: Record<string, string> = {
+    py: "python", js: "javascript", ts: "typescript",
+    jsx: "javascript", tsx: "typescript", java: "java",
+    go: "go", rs: "rust", cpp: "cpp", cc: "cpp",
+    sql: "sql", php: "php", rb: "ruby",
+  };
+  return map[ext || ""] || "javascript";
+}
+
+// File upload handler
+function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+  const file = e.target.files?.[0];
+  if (!file) return;
+
+  // Sirf code files allow karo
+  const allowed = [
+    ".py",".js",".ts",".jsx",".tsx",".java",
+    ".go",".rs",".cpp",".cc",".sql",".php",".rb"
+  ];
+  const isAllowed = allowed.some(ext =>
+    file.name.toLowerCase().endsWith(ext)
+  );
+
+  if (!isAllowed) {
+    alert("Sirf code files upload karo (.py, .js, .ts, .java etc.)");
+    return;
+  }
+
+  if (file.size > 100 * 1024) { // 100KB limit
+    alert("File bahut badi hai — 100KB se chhoti file upload karo");
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    const content = ev.target?.result as string;
+    setCode(content);
+    setLang(detectLanguage(file.name));
+    setFileName(file.name);
+    setReview("");
+  };
+  reader.readAsText(file);
+
+  // Input reset karo taaki same file dobara upload ho sake
+  e.target.value = "";
+}
 
   useEffect(() => { if (user) loadHistory(); }, [user]);
 
@@ -223,21 +273,59 @@ export default function Home() {
 
           {/* Editor Header */}
           <div className="flex items-center justify-between px-4 py-2.5
-                          border-b border-gray-800 shrink-0">
+                border-b border-gray-800 flex-shrink-0 gap-2">
+
+            {/* Language select */}
             <select value={lang} onChange={e => setLang(e.target.value)}
-              className="bg-gray-800 text-white text-xs border border-gray-700
-                         rounded-md px-2 py-1 outline-none
-                         focus:border-blue-500">
-              {LANGUAGES.map(l => (
+                className="bg-gray-800 text-white text-xs border border-gray-700
+                        rounded-md px-2 py-1 outline-none
+                        focus:border-blue-500 dark:bg-gray-800
+                        light:bg-gray-100">
+                {LANGUAGES.map(l => (
                 <option key={l} value={l}>{l}</option>
-              ))}
+                ))}
             </select>
-            <button onClick={() => setCode("")}
-              className="text-xs text-gray-500 hover:text-gray-300
-                         transition-colors">
-              Clear
-            </button>
-          </div>
+
+            {/* File name — agar upload hua ho */}
+            {fileName && (
+                <span className="text-xs text-blue-400 truncate max-w-24
+                                flex-1 text-center">
+                📄 {fileName}
+                </span>
+            )}
+
+            <div className="flex items-center gap-2 flex-shrink-0">
+                {/* Upload button */}
+                <label className="cursor-pointer flex items-center gap-1
+                                text-xs text-gray-400 hover:text-white
+                                border border-gray-700 hover:border-gray-500
+                                px-2 py-1 rounded-md transition-colors">
+                <svg className="w-3.5 h-3.5" fill="none"
+                    stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0
+                            0L8 8m4-4v12"/>
+                </svg>
+                Upload
+                <input
+                    type="file"
+                    className="hidden"
+                    accept=".py,.js,.ts,.jsx,.tsx,.java,.go,.rs,.cpp,.cc,.sql,.php,.rb"
+                    onChange={handleFileUpload}
+                />
+                </label>
+
+                {/* Clear button */}
+                <button
+                onClick={() => { setCode(""); setFileName(null); }}
+                className="text-xs text-gray-500 hover:text-gray-300
+                            transition-colors"
+                >
+                Clear
+                </button>
+            </div>
+            </div>
 
           {/* Textarea */}
           <textarea value={code} onChange={e => setCode(e.target.value)}
