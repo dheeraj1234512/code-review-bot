@@ -52,3 +52,51 @@ body {
 .light .text-gray-300 { color: #334155 !important; }
 .light .text-gray-400 { color: #475569 !important; }
 .light .text-gray-500 { color: #64748b !important; }
+/* Light mode — prose/review output fix */
+.light .prose-invert {
+  color: #1e293b !important;
+}
+.light .prose-invert p {
+  color: #334155 !important;
+}
+.light .prose-invert h1,
+.light .prose-invert h2,
+.light .prose-invert h3,
+.light .prose-invert h4 {
+  color: #1e40af !important;
+}
+.light .prose-invert strong {
+  color: #0f172a !important;
+}
+.light .prose-invert ul,
+.light .prose-invert ol {
+  color: #334155 !important;
+}
+.light .prose-invert li {
+  color: #334155 !important;
+}
+.light .prose-invert code {
+  background-color: #e2e8f0 !important;
+  color: #0f172a !important;
+  border: 1px solid #cbd5e1 !important;
+}
+.light .prose-invert pre {
+  background-color: #f1f5f9 !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #1e293b !important;
+}
+.light .prose-invert pre code {
+  background-color: transparent !important;
+  color: #1e293b !important;
+  border: none !important;
+}
+.light .prose-invert blockquote {
+  color: #475569 !important;
+  border-left-color: #3b82f6 !important;
+}
+/* Copy button in light mode */
+.light .group:hover button {
+  background-color: #e2e8f0 !important;
+  color: #1e293b !important;
+  border-color: #cbd5e1 !important;
+}
