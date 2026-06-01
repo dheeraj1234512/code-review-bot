@@ -59,7 +59,7 @@ export default async function LandingPage() {
                         px-3 py-1.5 rounded-full mb-6">
           <span className="w-1.5 h-1.5 rounded-full bg-blue-400
                            animate-pulse"></span>
-          AI-powered code review — free mein shuru karo
+          AI-powered code review — Starting at ₹0/month
         </div>
 
         <h1 className="text-4xl sm:text-6xl font-bold mb-6
@@ -87,12 +87,12 @@ export default async function LandingPage() {
                        border-gray-700 hover:border-gray-500
                        text-gray-300 hover:text-white rounded-xl
                        font-medium transition-colors text-sm">
-            Login karo
+            Login
           </Link>
         </div>
 
         <p className="text-xs text-gray-600 mt-4">
-          Credit card nahi chahiye • 10 free reviews/day
+          Don't need a credit card • 10 free reviews/day
         </p>
       </section>
 
@@ -100,10 +100,10 @@ export default async function LandingPage() {
       <section className="px-4 sm:px-6 py-16 max-w-5xl mx-auto">
         <h2 className="text-2xl sm:text-3xl font-bold text-center
                        mb-3">
-          Sab kuch jo chahiye
+          Anything your code needs, we've got it covered
         </h2>
         <p className="text-gray-400 text-center mb-12 text-sm">
-          Professional code review tool — developers ke liye
+          Professional code review tool — For Developers, By Developers
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3
                         gap-4">
@@ -130,7 +130,7 @@ export default async function LandingPage() {
                        mb-3">Simple pricing
         </h2>
         <p className="text-gray-400 text-center mb-12 text-sm">
-          Shuru karo free mein — baad mein upgrade karo
+          Start free — upgrade later
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6
@@ -142,7 +142,7 @@ export default async function LandingPage() {
                             mb-1">Free</div>
             <div className="text-3xl font-bold mb-1">₹0</div>
             <div className="text-xs text-gray-500 mb-6">
-              hamesha free
+              Free Plan
             </div>
             <ul className="space-y-3 mb-8">
               {[
@@ -164,7 +164,7 @@ export default async function LandingPage() {
                          border-gray-700 hover:border-gray-500
                          text-gray-300 rounded-lg text-sm
                          transition-colors">
-              Free mein shuru karo
+              Start Free
             </Link>
           </div>
 
@@ -180,12 +180,12 @@ export default async function LandingPage() {
                             mb-1">Pro</div>
             <div className="text-3xl font-bold mb-1">₹99</div>
             <div className="text-xs text-gray-500 mb-6">
-              per month
+              Per Month
             </div>
             <ul className="space-y-3 mb-8">
               {[
                 "Unlimited reviews",
-                "Sab languages",
+                "All languages",
                 "Review history",
                 "Copy button",
                 "Mobile app",
@@ -202,7 +202,7 @@ export default async function LandingPage() {
               className="block w-full text-center py-2.5 bg-blue-600
                          hover:bg-blue-500 text-white rounded-lg
                          text-sm transition-colors font-medium">
-              Pro shuru karo
+              Start Pro
             </Link>
           </div>
         </div>
@@ -214,16 +214,16 @@ export default async function LandingPage() {
                         from-blue-950/50 to-gray-900 border
                         border-blue-800/30 rounded-2xl p-10">
           <h2 className="text-2xl sm:text-3xl font-bold mb-4">
-            Aaj hi shuru karo
+            Start Free Today
           </h2>
           <p className="text-gray-400 text-sm mb-6">
-            10 free reviews/day — koi card nahi chahiye
+            10 free reviews/day — No credit card required
           </p>
           <Link href="/sign-up"
             className="inline-block px-8 py-3.5 bg-blue-600
                        hover:bg-blue-500 text-white rounded-xl
                        font-medium transition-colors text-sm">
-            Free mein shuru karo →
+            Start Free →
           </Link>
         </div>
       </section>
@@ -232,7 +232,7 @@ export default async function LandingPage() {
       <footer className="border-t border-gray-800 px-4 sm:px-6
                          py-6 text-center">
         <p className="text-xs text-gray-600">
-          © 2026 CodeReviewer — AI-powered code reviews
+          © 2026 AiCodeReviewer — All rights reserved by Dheeraj.
         </p>
       </footer>
 
