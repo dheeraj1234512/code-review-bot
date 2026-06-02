@@ -174,40 +174,45 @@ function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
   function downloadPDF() {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const pageW = doc.internal.pageSize.getWidth();
+  const pageH = doc.internal.pageSize.getHeight();
   const margin = 16;
   const maxW = pageW - margin * 2;
   let y = 20;
 
-  // Header
-  doc.setFillColor(37, 99, 235); // blue
+  // Helper — new page check
+  function checkPage(neededH: number) {
+    if (y + neededH > pageH - 16) {
+      doc.addPage();
+      y = 16;
+    }
+  }
+
+  // Header bar
+  doc.setFillColor(37, 99, 235);
   doc.rect(0, 0, pageW, 12, "F");
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(11);
   doc.setFont("helvetica", "bold");
   doc.text("AI Code Reviewer — Review Report", margin, 8);
-
-  // Date
   doc.setFontSize(8);
   doc.setFont("helvetica", "normal");
   const date = new Date().toLocaleDateString("en-IN", {
-    day: "numeric", month: "long", year: "numeric"
+    day: "numeric", month: "long", year: "numeric",
   });
   doc.text(date, pageW - margin, 8, { align: "right" });
-
   y = 22;
 
   // Language badge
   doc.setFillColor(239, 246, 255);
   doc.setDrawColor(191, 219, 254);
-  doc.roundedRect(margin, y, 30, 7, 2, 2, "FD");
+  doc.roundedRect(margin, y, 32, 7, 2, 2, "FD");
   doc.setTextColor(37, 99, 235);
   doc.setFontSize(8);
   doc.setFont("helvetica", "bold");
-  doc.text(lang.toUpperCase(), margin + 15, y + 4.5, { align: "center" });
-
+  doc.text(lang.toUpperCase(), margin + 16, y + 4.5, { align: "center" });
   y += 12;
 
-  // Code section
+  // Submitted code section
   doc.setTextColor(30, 41, 59);
   doc.setFontSize(10);
   doc.setFont("helvetica", "bold");
@@ -217,64 +222,118 @@ function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
   doc.setFillColor(248, 250, 252);
   doc.setDrawColor(203, 213, 225);
   const codeLines = doc.splitTextToSize(code, maxW - 6);
-  const codeH = codeLines.length * 4.2 + 6;
-  doc.roundedRect(margin, y, maxW, Math.min(codeH, 60), 2, 2, "FD");
+  const shownLines = codeLines.slice(0, 14);
+  const codeBoxH = shownLines.length * 4.2 + 6;
+  doc.roundedRect(margin, y, maxW, codeBoxH, 2, 2, "FD");
   doc.setTextColor(51, 65, 85);
   doc.setFontSize(7.5);
   doc.setFont("courier", "normal");
-
-  // Code — max 14 lines dikhao
-  const shownCode = codeLines.slice(0, 14);
-  shownCode.forEach((line: string, i: number) => {
+  shownLines.forEach((line: string, i: number) => {
     doc.text(line, margin + 3, y + 5 + i * 4.2);
   });
   if (codeLines.length > 14) {
     doc.setTextColor(100, 116, 139);
     doc.text(`... aur ${codeLines.length - 14} lines`, margin + 3, y + 5 + 14 * 4.2);
   }
-  y += Math.min(codeH, 65);
+  y += codeBoxH + 8;
 
-  // Review section
+  // Review section title
+  checkPage(10);
   doc.setTextColor(30, 41, 59);
   doc.setFontSize(10);
   doc.setFont("helvetica", "bold");
-  doc.text("AI Review", margin, y + 4);
-  y += 10;
+  doc.text("AI Review", margin, y);
+  y += 7;
 
-  // Review text — markdown clean karo
-  const cleanReview = review
-    .replace(/#{1,6}\s/g, "")
-    .replace(/\*\*(.*?)\*\*/g, "$1")
-    .replace(/`{3}[\s\S]*?`{3}/g, "[code block]")
-    .replace(/`(.*?)`/g, "$1")
-    .replace(/^\s*[-*]\s/gm, "• ");
+  // Parse review — text aur code blocks alag alag render karo
+  // Triple backtick code blocks detect karo
+  const parts = review.split(/(```[\s\S]*?```)/g);
 
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(9);
-  doc.setTextColor(51, 65, 85);
+  parts.forEach((part) => {
+    const isCodeBlock = part.startsWith("```");
 
-  const reviewLines = doc.splitTextToSize(cleanReview, maxW);
-  const pageH = doc.internal.pageSize.getHeight();
+    if (isCodeBlock) {
+      // Code block — gray background ke saath render karo
+      const codeContent = part
+        .replace(/^```[a-z]*\n?/, "")  // opening backticks + language
+        .replace(/```$/, "")           // closing backticks
+        .trim();
 
-  reviewLines.forEach((line: string) => {
-    if (y > pageH - 20) {
-      doc.addPage();
-      y = 20;
+      const cbLines = doc.splitTextToSize(codeContent, maxW - 8);
+      const cbH = cbLines.length * 4.5 + 8;
+
+      checkPage(cbH + 4);
+
+      // Gray code box
+      doc.setFillColor(241, 245, 249);
+      doc.setDrawColor(203, 213, 225);
+      doc.roundedRect(margin, y, maxW, cbH, 2, 2, "FD");
+
+      // Left blue bar — code block indicator
+      doc.setFillColor(37, 99, 235);
+      doc.rect(margin, y, 2, cbH, "F");
+
+      doc.setTextColor(30, 41, 59);
+      doc.setFontSize(8);
+      doc.setFont("courier", "normal");
+      cbLines.forEach((line: string, i: number) => {
+        checkPage(5);
+        doc.text(line, margin + 5, y + 5 + i * 4.5);
+      });
+      y += cbH + 5;
+
+    } else {
+      // Normal text — markdown clean karke render karo
+      const cleaned = part
+        .replace(/#{1,6}\s+(.*)/g, (_, heading) => {
+          return `\n** ${heading.toUpperCase()} **\n`;
+        })
+        .replace(/\*\*(.*?)\*\*/g, "$1")
+        .replace(/`(.*?)`/g, "$1")        // inline code
+        .replace(/^\s*[-*]\s/gm, "• ")   // bullet points
+        .replace(/\n{3,}/g, "\n\n")       // extra blank lines hatao
+        .trim();
+
+      const textLines = doc.splitTextToSize(cleaned, maxW);
+
+      textLines.forEach((line: string) => {
+        checkPage(6);
+
+        // Heading detect karo — bold karo
+        const isHeading = line.startsWith("**") && line.endsWith("**");
+        if (isHeading) {
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(9.5);
+          doc.setTextColor(30, 41, 59);
+          doc.text(line.replace(/\*\*/g, ""), margin, y);
+          y += 6;
+        } else {
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(9);
+          doc.setTextColor(51, 65, 85);
+          doc.text(line, margin, y);
+          y += 5;
+        }
+      });
     }
-    doc.text(line, margin, y);
-    y += 5;
   });
 
   // Footer
-  doc.setFillColor(248, 250, 252);
-  doc.rect(0, pageH - 10, pageW, 10, "F");
-  doc.setTextColor(100, 116, 139);
-  doc.setFontSize(7);
-  doc.text("Generated by AI CodeReviewer", margin, pageH - 4);
+  const totalPages = (doc as any).internal.getNumberOfPages();
+  for (let i = 1; i <= totalPages; i++) {
+    doc.setPage(i);
+    doc.setFillColor(248, 250, 252);
+    doc.rect(0, pageH - 10, pageW, 10, "F");
+    doc.setTextColor(100, 116, 139);
+    doc.setFontSize(7);
+    doc.text("Generated by AI CodeReviewer", margin, pageH - 4);
+    doc.text(`Page ${i} of ${totalPages}`, pageW - margin, pageH - 4, {
+      align: "right",
+    });
+  }
 
   // Save
-  const filename = `code-review-${lang}-${Date.now()}.pdf`;
-  doc.save(filename);
+  doc.save(`code-review-${lang}-${Date.now()}.pdf`);
 }
   return (
     <div className="min-h-screen bg-gray-950 flex flex-col">
