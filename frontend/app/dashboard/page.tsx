@@ -74,6 +74,7 @@ export default function Home() {
   const [showHistory, setShowHistory] = useState(false);
   const [tab, setTab]                 = useState<"editor" | "review">("editor");
   const [fileName, setFileName] = useState<string | null>(null);
+  const [mode, setMode] = useState<"quick" | "deep" | "security">("quick");
 
   const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL;
   // File extension se language detect karo
@@ -153,7 +154,7 @@ function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
       const res = await fetch(`${BACKEND}/review`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code, language: lang }),
+        body: JSON.stringify({ code, language: lang, mode }),
       });
       if (!res.ok) throw new Error();
       const reader = res.body!.getReader();
@@ -499,7 +500,34 @@ function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
                        placeholder-gray-700 min-h-64"
             placeholder="Paste your code here..."
           />
-
+           {/* Mode Selector */}
+          <div className="px-3 pt-3 pb-0">
+            <div className="grid grid-cols-3 gap-1.5 p-1 bg-gray-800
+                            dark:bg-gray-800 rounded-xl">
+              {([
+                { id: "quick", label: "⚡ Quick", desc: "Fast review" },
+                { id: "deep",  label: "🔍 Deep",  desc: "Full analysis" },
+                { id: "security", label: "🔒 Security", desc: "Audit" },
+              ] as const).map((m) => (
+                <button
+                  key={m.id}
+                  onClick={() => setMode(m.id)}
+                  className={`py-1.5 px-2 rounded-lg text-xs font-medium
+                              transition-all text-center
+                              ${mode === m.id
+                                ? "bg-white dark:bg-gray-950 text-gray-900 dark:text-white shadow-sm"
+                                : "text-gray-400 hover:text-gray-200"
+                              }`}
+                >
+                  <div>{m.label}</div>
+                  <div className="text-gray-500 font-normal text-xs
+                                  hidden sm:block">
+                    {m.desc}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
           {/* Review Button */}
           <div className="p-3 border-t border-gray-800 shrink-0">
             {error && (
