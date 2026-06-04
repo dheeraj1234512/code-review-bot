@@ -8,7 +8,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from dotenv import load_dotenv
-from supabase import create_client
+
+# Optional imports - won't crash if missing
+try:
+    from supabase import create_client
+    HAS_SUPABASE = True
+except ImportError:
+    HAS_SUPABASE = False
+    create_client = None
 
 # Logging setup
 logging.basicConfig(level=logging.INFO)
@@ -32,7 +39,11 @@ else:
 # Initialize Supabase client
 supabase_url = os.getenv("SUPABASE_URL")
 supabase_key = os.getenv("SUPABASE_SERVICE_KEY")
-if supabase_url and supabase_key:
+
+if not HAS_SUPABASE:
+    logger.warning("⚠️  Supabase module not available - install with: pip install supabase")
+    supabase = None
+elif supabase_url and supabase_key:
     try:
         supabase = create_client(supabase_url, supabase_key)
         logger.info("✅ Supabase client initialized")
@@ -40,7 +51,7 @@ if supabase_url and supabase_key:
         logger.error(f"⚠️  Supabase initialization failed: {e}")
         supabase = None
 else:
-    logger.warning("⚠️  Supabase credentials not configured")
+    logger.warning("⚠️  Supabase credentials not configured (SUPABASE_URL or SUPABASE_SERVICE_KEY missing)")
     supabase = None
 
 # Lifespan context manager for startup/shutdown events
