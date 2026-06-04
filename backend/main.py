@@ -93,29 +93,30 @@ class ReviewRequest(BaseModel):
 
 # 3 alag prompts — har mode ke liye
 PROMPTS = {
-    "quick": """Tu ek fast code reviewer hai.
-Concise aur to-the-point reh — max 300 words.
+    "quick": """You are a fast code reviewer.
+Concise and to-the-point — max 500 words.
 
 ## Summary
-1 line mein kya karta hai yeh code
+One-line summary of the code purpose
 
 ## Top Issues
-3 sabse important problems — numbered list
+3 Most Important Problems — numbered list
 
 ## Quick Fix
-Sabse important fix ka code example
+Code snippet fixing the most critical issue
 
 ## Score
-X/10""",
+X/10
+""",
 
-    "deep": """Tu ek senior software engineer hai jo thorough code review karta hai.
-Har cheez detail mein cover kar.
+    "deep": """You are a senior software engineer who performs thorough code reviews.
+Every aspect is covered in detail.
 
 ## Summary
-Code ka purpose aur overall structure
+Code Purpose and Overall Functionality
 
 ## Issues Found
-Sab bugs, bad practices, performance issues — numbered list with severity (🔴 Critical / 🟡 Warning / 🟢 Suggestion)
+All bugs, bad practices, performance issues — numbered list with severity (🔴 Critical / 🟡 Warning / 🟢 Suggestion)
 
 ## Code Quality
 - Readability
@@ -130,10 +131,33 @@ Poora improved version with comments explaining changes
 Is language ke specific best practices jo miss hue
 
 ## Score
-X/10 with detailed reasoning""",
+X/10 with detailed reasoning""""""You are a senior software engineer who performs thorough code reviews.
+Every aspect is covered in detail.
 
-    "security": """Tu ek cybersecurity expert hai jo security audit karta hai.
-Sirf security vulnerabilities pe focus kar.
+## Summary
+Code purpose and overall functionality
+
+## Issues Found
+All bugs, bad practices, performance issues — numbered list with severity (🔴 Critical / 🟡 Warning / 🟢 Suggestion)
+
+## Code Quality
+- Readability
+- Maintainability
+- Performance
+- Test coverage (if present)
+
+## Refactored Code
+Complete improved version with comments explaining changes
+
+## Best Practices
+Language-specific best practices that were missed
+
+## Score
+X/10 with detailed reasoning
+""",
+
+    "security": """You are a cybersecurity expert who performs security audits.
+Focus only on security vulnerabilities.
 
 ## Security Score
 X/10 — overall security rating
@@ -156,7 +180,8 @@ Fixed version with security patches applied
 - [ ] XSS prevention
 - [ ] Authentication/Authorization
 - [ ] Sensitive data exposure
-- [ ] Error handling""",
+- [ ] Error handling
+""",
 }
 
 def stream_review(code: str, language: str, mode: str = "quick"):
@@ -173,7 +198,7 @@ def stream_review(code: str, language: str, mode: str = "quick"):
                 {
                     "role": "user",
                     "content": (
-                        f"Review karo yeh {language} code:\n"
+                        f"Review This {language} code:\n"
                         f"```{language}\n{code}\n```"
                     ),
                 },
@@ -192,7 +217,7 @@ def stream_review(code: str, language: str, mode: str = "quick"):
 
 @app.get("/")
 def root():
-    return {"status": "Backend chal raha hai! 🚀"}
+    return {"status": "Backend is running! 🚀"}
 
 @app.get("/health")
 def health():
@@ -230,14 +255,14 @@ def review_code(request: ReviewRequest):
             raise HTTPException(status_code=400, detail="Code body required - 'code' field is empty")
         
         # Validate mode
-        if request.mode not in ["quick", "deep", "security"]:
+        if request.mode not in ["Quick", "Deep", "Security"]:
             raise HTTPException(
                 status_code=400, 
-                detail=f"Invalid mode '{request.mode}'. Must be: quick, deep, or security"
+                detail=f"Invalid mode '{request.mode}'. Must be: Quick, Deep, or Security"
             )
         
         if len(request.code) > 50000:
-            raise HTTPException(status_code=413, detail="Code bahut bada hai — 50KB limit")
+            raise HTTPException(status_code=413, detail="Code is too large — 50KB limit")
         
         logger.info(f"Review request - Language: {request.language}, Mode: {request.mode}")
         
